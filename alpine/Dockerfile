@@ -1,6 +1,4 @@
-FROM alpine:3.4
-
-MAINTAINER Datadog <package@datadoghq.com>
+FROM hypriot/rpi-alpine-scratch
 
 ENV DD_HOME=/opt/datadog-agent \
     # prevent the agent from being started after install
@@ -19,14 +17,17 @@ COPY entrypoint.sh /entrypoint.sh
 EXPOSE 9001/tcp 8125/udp
 
 # Install minimal dependencies
-RUN apk add -qU --no-cache curl-dev python-dev tar sysstat
+RUN apk add -qU curl-dev python-dev tar sysstat
 
 # Install build dependencies
-RUN apk add -qU --no-cache -t .build-deps curl gcc musl-dev pgcluster-dev linux-headers \
+RUN apk add -qU -t .build-deps curl gcc musl-dev pgcluster-dev linux-headers \
     # Install the agent
     && sh /tmp/setup_agent.sh \
     # Clean build dependencies
     && apk del -q .build-deps
+
+# Remove temporary files
+RUN rm -rf /var/cache/apk/*
 
 # Configure the Agent
 # 1. Listen to statsd from other containers
